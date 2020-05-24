@@ -22,7 +22,7 @@ dependencies:
   adobe_xd: ^0.1.3
   permission_handler: ^5.0.0+hotfix.6
   image_gallery_saver: ^1.2.2
-  flutter_simple_sticker_view: ^1.0.0
+
   get: ^1.2.71
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
