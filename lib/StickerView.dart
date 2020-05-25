@@ -1,67 +1,159 @@
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/rendering.dart';
 
-import 'FlutterSimpleStickerView.dart';
+import 'StickerImage.dart';
 
 class StickerView extends StatefulWidget {
+  StickerView(
+    this.source,
+    this.stickerList, {
+    Key key,
+    this.stickerSize = 100.0,
+    this.stickerMaxScale = 2.0,
+    this.stickerMinScale = 0.5,
+    this.panelHeight = 200.0,
+    this.panelBackgroundColor = Colors.black,
+    this.panelStickerBackgroundColor = Colors.white10,
+    this.panelStickercrossAxisCount = 4,
+    this.panelStickerAspectRatio = 1.0,
+    this.devicePixelRatio = 3.0,
+  }) : super(key: key);
+
+  final Widget source;
+  final List<Image> stickerList;
+
+  final double stickerSize;
+  final double stickerMaxScale;
+  final double stickerMinScale;
+
+  final double panelHeight;
+  final Color panelBackgroundColor;
+  final Color panelStickerBackgroundColor;
+  final int panelStickercrossAxisCount;
+  final double panelStickerAspectRatio;
+  final double devicePixelRatio;
+
+  final _StickerViewState _stickerViewState = _StickerViewState();
+
+  Future<Uint8List> exportImage() async {
+    await _stickerViewState._prepareExport();
+
+    Future<Uint8List> exportImage = _stickerViewState.exportImage();
+    print("export image success!");
+    return exportImage;
+  }
+
   @override
-  _StickerViewState createState() => _StickerViewState();
+  _StickerViewState createState() => _stickerViewState;
 }
 
 class _StickerViewState extends State<StickerView> {
-  FlutterSimpleStickerView _stickerView = FlutterSimpleStickerView(
-    Container(
-      decoration: BoxDecoration(
-          color: Colors.red,
-          image: DecorationImage(
-              fit: BoxFit.cover,
-              image: ExactAssetImage("assets/car_digram.jpg"))),
-    ),
-    [
-      Image.asset("assets/icons8-superman-50.png"),
-      Image.asset("assets/icons8-captain-america-50.png"),
-      Image.asset("assets/icons8-avengers-50.png"),
-      Image.asset("assets/icons8-iron-man-50.png"),
-      Image.asset("assets/icons8-batman-50.png"),
-      Image.asset("assets/icons8-thor-50.png"),
-      Image.asset("assets/icons8-venom-head-50.png"),
-      Image.asset("assets/icons8-homer-simpson-50.png"),
-      Image.asset("assets/icons8-spider-man-head-50.png"),
-      Image.asset("assets/icons8-harry-potter-50.png"),
-      Image.asset("assets/icons8-genie-lamp-50.png"),
-      Image.asset("assets/icons8-cyborg-50.png"),
-      Image.asset("assets/icons8-one-ring-50.png"),
-    ],
-    panelHeight: 100,
-    panelBackgroundColor: Colors.blue,
-//    panelStickerBackgroundColor: Colors.pink,
-    panelStickercrossAxisCount: 5,
-    panelStickerAspectRatio: 1.0,
-    stickerSize: 70,
-  );
+  _StickerViewState();
+
+  Size viewport;
+
+  List<StickerImage> attachedList = [];
+
+  final GlobalKey key = GlobalKey();
+
+  void attachSticker(Image image) {
+    setState(() {
+      attachedList.add(StickerImage(
+        image,
+        key: Key("sticker_${attachedList.length}"),
+        width: this.widget.stickerSize,
+        height: this.widget.stickerSize,
+        viewport: viewport,
+        maxScale: this.widget.stickerMaxScale,
+        minScale: this.widget.stickerMinScale,
+        onTapRemove: (sticker) {
+          this.onTapRemoveSticker(sticker);
+        },
+      ));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text("Flutter Simple Sticker View"),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.save_alt),
-              onPressed: () async {
-                Uint8List image = await _stickerView.exportImage();
-
-//                Map<PermissionGroup, PermissionStatus> permissions =
-//                    await PermissionHandler()
-//                        .requestPermissions([PermissionGroup.storage]);
-                await ImageGallerySaver.saveImage(image);
-              },
-            )
-          ],
+    return Column(
+      children: <Widget>[
+        Expanded(
+          child: RepaintBoundary(
+            key: key,
+            child: Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    viewport = viewport ??
+                        Size(constraints.maxWidth, constraints.maxHeight);
+                    return widget.source;
+                  },
+                ),
+                Stack(children: attachedList, fit: StackFit.expand)
+              ],
+            ),
+          ),
         ),
-        body: _stickerView);
+        Scrollbar(
+          child: DragTarget(
+            builder: (BuildContext context, List<String> candidateData,
+                List<dynamic> rejectedData) {
+              return Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  color: this.widget.panelBackgroundColor,
+                  child: GridView.builder(
+                    padding: EdgeInsets.zero,
+                    scrollDirection: Axis.vertical,
+                    itemCount: widget.stickerList.length,
+                    itemBuilder: (BuildContext context, int i) {
+                      return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            color: this.widget.panelStickerBackgroundColor,
+                            child: FlatButton(
+                                onPressed: () {
+                                  attachSticker(widget.stickerList[i]);
+                                },
+                                child: widget.stickerList[i]),
+                          ));
+                    },
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: this.widget.panelStickercrossAxisCount,
+                        childAspectRatio: this.widget.panelStickerAspectRatio),
+                  ),
+                  height: this.widget.panelHeight);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<Uint8List> exportImage() async {
+    RenderRepaintBoundary boundary = key.currentContext.findRenderObject();
+    var image =
+        await boundary.toImage(pixelRatio: this.widget.devicePixelRatio);
+    var byteData = await image.toByteData(format: ImageByteFormat.png);
+    var pngBytes = byteData.buffer.asUint8List();
+
+    return pngBytes;
+  }
+
+  void onTapRemoveSticker(StickerImage sticker) {
+    setState(() {
+      this.attachedList.removeWhere((s) => s.key == sticker.key);
+    });
+  }
+
+  Future<void> _prepareExport() async {
+    attachedList.forEach((s) {
+      s.prepareExport();
+    });
+    await Future.delayed(const Duration(milliseconds: 500));
   }
 }

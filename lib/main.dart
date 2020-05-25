@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'StickerView.dart';
+import 'StickerViewScreen.dart';
 import 'detailsiPhoneXXS11Pro1.dart';
 
 void main() => runApp(MyApp());
@@ -23,7 +22,8 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: StickerView(), // MyHomePage(title: 'Flutter Demo Home Page'),
+      home: StickerViewScreen(),
+      //home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }

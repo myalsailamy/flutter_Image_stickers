@@ -4,11 +4,10 @@ import 'package:flutter/material.dart';
 
 import 'package:vector_math/vector_math_64.dart';
 
-typedef StickeImageRemoveCallback = void Function(
-    FlutterSimpleStickerImage sticker);
+typedef StickeImageRemoveCallback = void Function(StickerImage sticker);
 
-class FlutterSimpleStickerImage extends StatefulWidget {
-  FlutterSimpleStickerImage(
+class StickerImage extends StatefulWidget {
+  StickerImage(
     this.image, {
     Key key,
     this.width,
@@ -29,36 +28,31 @@ class FlutterSimpleStickerImage extends StatefulWidget {
 
   final StickeImageRemoveCallback onTapRemove;
 
-  final _FlutterSimpleStickerImageState _flutterSimpleStickerImageState =
-      _FlutterSimpleStickerImageState();
+  final _StickerImageState _stickerImageState = _StickerImageState();
 
   void prepareExport() {
-    _flutterSimpleStickerImageState.hideRemoveButton();
+    _stickerImageState.hideRemoveButton();
   }
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.debug}) {
-    return "FlutterSimpleStickerImage-$key-${_flutterSimpleStickerImageState._offset}";
+    return "StickerImage-$key-${_stickerImageState._offset}";
   }
 
   @override
-  _FlutterSimpleStickerImageState createState() =>
-      _flutterSimpleStickerImageState;
+  _StickerImageState createState() => _stickerImageState;
 }
 
-class _FlutterSimpleStickerImageState extends State<FlutterSimpleStickerImage> {
-  _FlutterSimpleStickerImageState();
+class _StickerImageState extends State<StickerImage> {
+  _StickerImageState();
 
   double _scale = 1.0;
   double _previousScale = 1.0;
-
   Offset _previousOffset = Offset(0, 0);
   Offset _startingFocalPoint = Offset(0, 0);
   Offset _offset = Offset(0, 0);
-
   double _rotation = 0.0;
   double _previousRotation = 0.0;
-
   bool _isSelected = false;
 
   @override
@@ -88,8 +82,8 @@ class _FlutterSimpleStickerImageState extends State<FlutterSimpleStickerImage> {
                     _previousRotation = _rotation;
                     _previousScale = _scale;
 
-                    // print(
-                    //     "begin - focal : ${details.focalPoint}, local : ${details.localFocalPoint}");
+                    print(
+                        "begin - focal : ${details.focalPoint}, local : ${details.localFocalPoint}");
                   },
                   onScaleUpdate: (ScaleUpdateDetails details) {
                     _scale = min(
